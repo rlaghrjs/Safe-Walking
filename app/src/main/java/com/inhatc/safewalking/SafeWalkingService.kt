@@ -56,12 +56,11 @@ class SafeWalkingService : Service(), SensorEventListener {
 
     private var sessionWarningCount = 0 // 이번 스몸비 세션(한 번 연속해서 폰 보고 걸을 때) 동안 발생한 경고 수
 
-    private var walkingStreakCount = 0   // 연속 걸음 유효 횟수 (오작동 방지 버퍼)
-    private val REQUIRED_STREAK = 2      // 최소 2번 이상 발걸음 신호가 이어져야 실제 보행으로 인정
 
-    // [공식 변수] 스몸비 유효 각도 범위 (논문 표준 데이터 반영)
-    private val MIN_LOOKING_PITCH = 15.0
-    private val MAX_LOOKING_PITCH = 60.0
+    private var safeWalkingStartTime = 0L
+    private var currentSafeWalkingDuration = 0L
+    private var longestSafeWalkingDuration = 0L
+    private var safeWalkingDate = ""
 
     // [고도화 핵심] MainActivity와 통신하기 위한 실시간 데이터 전송 채널 (LiveData)
     companion object {
@@ -69,7 +68,8 @@ class SafeWalkingService : Service(), SensorEventListener {
             val accX: Float, val accY: Float, val accZ: Float,
             val pitch: Double, val isWalking: Boolean, val isScreenOn: Boolean,
             val isLookingAtPhone: Boolean, val isSmombie: Boolean,
-            val riskLevel: String, val smombieDuration: Long, val smombieCount: Int
+            val riskLevel: String, val smombieDuration: Long, val smombieCount: Int,
+            val longestSafeWalkingDuration: Long
         )
         val liveUiState = MutableLiveData<UIState>()
     }
@@ -119,6 +119,7 @@ class SafeWalkingService : Service(), SensorEventListener {
             detectWalking(magnitude)
             detectPhoneAngle()
             detectSmombie()
+            detectSafeWalking()
 
             // UI 전송
             val now = System.currentTimeMillis()
@@ -258,7 +259,7 @@ class SafeWalkingService : Service(), SensorEventListener {
     private fun sendDataToUI() {
         val state = UIState(
             accX, accY, accZ, pitch, isWalking, isScreenOn,
-            isLookingAtPhone, isSmombie, riskLevel, smombieDuration, smombieCount
+            isLookingAtPhone, isSmombie, riskLevel, smombieDuration, smombieCount, longestSafeWalkingDuration
         )
         liveUiState.postValue(state) // Main Thread 혹은 Worker Thread 안전하게 값 전달
     }
@@ -423,5 +424,35 @@ class SafeWalkingService : Service(), SensorEventListener {
 
             dao.insertSession(newSession)
         }.start()
+    }
+
+    private fun detectSafeWalking() {
+        val today = getTodayDateString()
+        val now = System.currentTimeMillis()
+
+        // 날짜가 바뀌면 자동 리셋
+        if (safeWalkingDate != today) {
+            safeWalkingDate = today
+            safeWalkingStartTime = 0L
+            currentSafeWalkingDuration = 0L
+            longestSafeWalkingDuration = 0L
+        }
+
+        val isSafeWalking = isWalking && !isLookingAtPhone
+
+        if (isSafeWalking) {
+            if (safeWalkingStartTime == 0L) {
+                safeWalkingStartTime = now
+            }
+
+            currentSafeWalkingDuration = now - safeWalkingStartTime
+
+            if (currentSafeWalkingDuration > longestSafeWalkingDuration) {
+                longestSafeWalkingDuration = currentSafeWalkingDuration
+            }
+        } else {
+            safeWalkingStartTime = 0L
+            currentSafeWalkingDuration = 0L
+        }
     }
 }

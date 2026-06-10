@@ -15,11 +15,7 @@ class HomeFragment : Fragment() {
     private lateinit var textSubStatus: TextView
     private lateinit var textDurationDashboard: TextView
     private lateinit var textCountDashboard: TextView
-
-    private lateinit var layoutDebugToggle: View
-    private lateinit var textToggleArrow: TextView
-    private lateinit var scrollSensorContainer: View
-    private lateinit var textSensor: TextView
+    private lateinit var textLongestSafeWalk: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -33,22 +29,8 @@ class HomeFragment : Fragment() {
         textSubStatus = view.findViewById(R.id.textSubStatus)
         textDurationDashboard = view.findViewById(R.id.textDurationDashboard)
         textCountDashboard = view.findViewById(R.id.textCountDashboard)
+        textLongestSafeWalk = view.findViewById(R.id.textLongestSafeWalk)
 
-        layoutDebugToggle = view.findViewById(R.id.layoutDebugToggle)
-        textToggleArrow = view.findViewById(R.id.textToggleArrow)
-        scrollSensorContainer = view.findViewById(R.id.scrollSensorContainer)
-        textSensor = view.findViewById(R.id.textSensor)
-
-        // 디버그 토글 리스너
-        layoutDebugToggle.setOnClickListener {
-            if (scrollSensorContainer.visibility == View.GONE) {
-                scrollSensorContainer.visibility = View.VISIBLE
-                textToggleArrow.text = "▲"
-            } else {
-                scrollSensorContainer.visibility = View.GONE
-                textToggleArrow.text = "▼"
-            }
-        }
 
         // 서비스의 실시간 LiveData 관찰 시작
         SafeWalkingService.liveUiState.observe(viewLifecycleOwner) { state ->
@@ -63,18 +45,7 @@ class HomeFragment : Fragment() {
 
         textDurationDashboard.text = "${durationSec}초"
         textCountDashboard.text = "${state.smombieCount}회"
-
-        textSensor.text = """
-            [가속도 센서]
-            X: ${"%.2f".format(state.accX)} | Y: ${"%.2f".format(state.accY)} | Z: ${"%.2f".format(state.accZ)}
-            
-            [스마트폰 각도]
-            Pitch: ${"%.1f".format(state.pitch)}°
-            
-            [상태 점검]
-            보행 여부: ${state.isWalking} | 화면 켬: ${state.isScreenOn}
-            폰 주시: ${state.isLookingAtPhone} | 스몸비 상태: ${state.isSmombie}
-        """.trimIndent()
+        textLongestSafeWalk.text = formatDuration(state.longestSafeWalkingDuration)
 
         if (state.isSmombie) {
             textEvent.text = "스몸비 위험: ${state.riskLevel}"
@@ -107,6 +78,18 @@ class HomeFragment : Fragment() {
                 textSubStatus.text = "안전한 구역에 멈춰 서 있습니다."
                 cardStatus.setCardBackgroundColor(android.graphics.Color.parseColor("#757575"))
             }
+        }
+    }
+
+    private fun formatDuration(duration: Long): String {
+        val totalSec = (duration / 1000).toInt()
+        val min = totalSec / 60
+        val sec = totalSec % 60
+
+        return if (min > 0) {
+            "${min}분 ${sec}초"
+        } else {
+            "${sec}초"
         }
     }
 }
