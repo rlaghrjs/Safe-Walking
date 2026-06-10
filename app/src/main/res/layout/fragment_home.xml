@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F9FAFB"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Safe Walk"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="#111111"
+        android:layout_marginBottom="24dp"/>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardStatus"
+        android:layout_width="match_parent"
+        android:layout_height="160dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="#2196F3"
+        android:layout_marginBottom="20dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="24dp">
+            <TextView
+                android:id="@+id/textEvent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="감지 대기 중"
+                android:textColor="#FFFFFF"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
+            <TextView
+                android:id="@+id/textSubStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="서비스가 활성화되면 분석을 시작합니다."
+                android:textColor="#E3F2FD"
+                android:textSize="14sp"
+                android:textAlignment="center"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:orientation="horizontal"
+        android:layout_marginBottom="20dp">
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            android:layout_marginRight="6dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center_vertical"
+                android:paddingLeft="16dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="위험 노출 시간" android:textColor="#888888" android:textSize="12sp"/>
+                <TextView android:id="@+id/textDurationDashboard" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0초" android:textColor="#111111" android:textSize="18sp" android:textStyle="bold"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            android:layout_marginLeft="6dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center_vertical"
+                android:paddingLeft="16dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="오늘 경고 횟수" android:textColor="#888888" android:textSize="12sp"/>
+                <TextView android:id="@+id/textCountDashboard" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0회" android:textColor="#111111" android:textSize="18sp" android:textStyle="bold"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layoutDebugToggle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="10dp"
+        android:background="#EEEEEE">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="실시간 센서 데이터 보기" android:textStyle="bold"/>
+        <TextView android:id="@+id/textToggleArrow" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="▼"/>
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/scrollSensorContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:background="#FFFFFF"
+        android:padding="10dp">
+        <TextView
+            android:id="@+id/textSensor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="센서 데이터 로딩 중..."
+            android:fontFamily="monospace"
+            android:textColor="#333333"/>
+    </ScrollView>
+</LinearLayout>
