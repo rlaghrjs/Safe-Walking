@@ -211,15 +211,26 @@ class SafeWalkingService : Service(), SensorEventListener {
                 removeOverlay()
             }
         } else {
-            // [수정] 스몸비 상태였다가 방금 안전해진 순간! (세션 종료)
             if (isSmombie) {
-                updateNotification("안전 보행 감지 중", "주변을 살피며 걸어주세요.", false)
+                val finalRiskLevel = riskLevel
 
-                // ⭐️ 안전 구역으로 돌아온 순간, 이번 세션의 누적 시간과 경고 횟수를 DB에 영구 저장합니다.
-                saveSmombieDataToDb(smombieDuration, sessionWarningCount)
+                updateNotification(
+                    "안전 보행 감지 중",
+                    "주변을 살피며 걸어주세요.",
+                    false
+                )
+
+                saveSmombieDataToDb(
+                    smombieDuration,
+                    sessionWarningCount,
+                    finalRiskLevel
+                )
             }
             removeOverlay()
-            isSmombie = false; smombieStartTime = 0L; smombieDuration = 0L; riskLevel = "안전"
+            isSmombie = false;
+            smombieStartTime = 0L;
+            smombieDuration = 0L;
+            riskLevel = "안전"
             hasCountedThisSession = false
         }
         lastSmombieState = isSmombie
@@ -387,8 +398,11 @@ class SafeWalkingService : Service(), SensorEventListener {
         return sdf.format(Date())
     }
 
-    // SafeWalkingService.kt 내부의 saveSmombieDataToDb 함수 교체
-    private fun saveSmombieDataToDb(sessionDuration: Long, sessionWarningCount: Int) {
+    private fun saveSmombieDataToDb(
+        sessionDuration: Long,
+        sessionWarningCount: Int,
+        finalRiskLevel: String
+    ) {
         if (sessionDuration <= 0 && sessionWarningCount <= 0) return
 
         Thread {
@@ -396,20 +410,17 @@ class SafeWalkingService : Service(), SensorEventListener {
             val dao = db.smombieDao()
             val todayStr = getTodayDateString()
 
-            // ⭐️ 현재 시각에서 지속 시간을 빼서 '스몸비가 시작된 시각'을 포맷팅합니다.
             val timeSdf = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
             val startTimeStr = timeSdf.format(Date(System.currentTimeMillis() - sessionDuration))
 
-            // 개별 세션 데이터 생성
             val newSession = SmombieSession(
                 date = todayStr,
                 startTime = startTimeStr,
                 duration = sessionDuration,
                 warningCount = sessionWarningCount,
-                riskLevel = riskLevel // 세션 종료 시점의 위험 등급
+                riskLevel = finalRiskLevel
             )
 
-            // 데이터베이스에 독립된 레코드로 삽입
             dao.insertSession(newSession)
         }.start()
     }
