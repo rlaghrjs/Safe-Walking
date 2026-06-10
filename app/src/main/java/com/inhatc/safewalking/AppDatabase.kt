@@ -20,7 +20,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "safewalking_database"
                 )
-                    .allowMainThreadQueries() // 테스트 편의를 위해 메인스레드 쿼리 허용 (실무에선 비동기 권장)
+                    .allowMainThreadQueries()
                     .build()
                 INSTANCE = instance
                 instance
