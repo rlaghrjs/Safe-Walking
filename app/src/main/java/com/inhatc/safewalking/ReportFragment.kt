@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.Spinner
+//import android.widget.Spinner
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
@@ -24,7 +24,7 @@ import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 class ReportFragment : Fragment() {
 
     private lateinit var barChart: BarChart
-    private lateinit var spinnerFilter: Spinner
+    //private lateinit var spinnerFilter: Spinner
     private lateinit var textSelectedDate: TextView
     private lateinit var textSelectedDuration: TextView
     private lateinit var textSelectedCount: TextView
@@ -44,7 +44,7 @@ class ReportFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_report, container, false)
 
         barChart = view.findViewById(R.id.barChart)
-        spinnerFilter = view.findViewById(R.id.spinnerFilter)
+        //spinnerFilter = view.findViewById(R.id.spinnerFilter)
         textSelectedDate = view.findViewById(R.id.textSelectedDate)
         textSelectedDuration = view.findViewById(R.id.textSelectedDuration)
         textSelectedCount = view.findViewById(R.id.textSelectedCount)
@@ -60,12 +60,13 @@ class ReportFragment : Fragment() {
             handleIncomingRecords(records, "일별")
         }
 
-        setupSpinner()
+        //setupSpinner()
         setupChartInteraction()
 
         return view
     }
 
+    /*
     private fun setupSpinner() {
         val options = arrayOf("일별", "주간", "월간")
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, options)
@@ -106,6 +107,7 @@ class ReportFragment : Fragment() {
             handleIncomingRecords(records, "월간")
         }
     }
+    */
 
     private fun handleIncomingRecords(records: List<SmombieRecord>?, filterType: String) {
         if (!records.isNullOrEmpty()) {
@@ -127,11 +129,18 @@ class ReportFragment : Fragment() {
         records.forEachIndexed { index, record ->
             entries.add(BarEntry(index.toFloat(), record.totalWarningCount.toFloat()))
 
+            /*
             val formattedLabel = when (filterType) {
                 "일별" -> try { record.date.substring(5).replace("-", "/") } catch (e: Exception) { record.date }
                 "주간" -> record.date.replace("-W", "년 ") + "주차"
                 "월간" -> try { record.date.substring(2).replace("-", "년 ") + "월" } catch (e: Exception) { record.date }
                 else -> record.date
+            }
+            */
+            val formattedLabel = try {
+                record.date.substring(5).replace("-", "/")
+            } catch (e: Exception) {
+                record.date
             }
             dateLabels.add(formattedLabel)
         }
@@ -191,11 +200,13 @@ class ReportFragment : Fragment() {
 
                         val summaryText = view?.findViewById<TextView>(R.id.textStatusSummary)
 
+                        /*
                         if (targetDate.contains("-W") || targetDate.length == 7) {
                             sessionAdapter.updateData(emptyList())
                             summaryText?.text = "일별 그래프에서만 상세 세션을 확인할 수 있습니다"
                             return
                         }
+                         */
 
                         Thread {
                             val daySessions = db.smombieDao().getSessionsByDate(targetDate)

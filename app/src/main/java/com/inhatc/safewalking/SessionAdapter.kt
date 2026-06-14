@@ -32,8 +32,8 @@ class SessionAdapter(private var sessions: List<SmombieSession>) :
 
         // 위험도에 따른 색상 차별화
         when(item.riskLevel) {
-            "위험", "매우 위험" -> holder.textRisk.setBackgroundColor(android.graphics.Color.parseColor("#F44336"))
-            "주의" -> holder.textRisk.setBackgroundColor(android.graphics.Color.parseColor("#FFB300"))
+            "위험", "매우 위험", "야간 매우 위험", "야간 위험" -> holder.textRisk.setBackgroundColor(android.graphics.Color.parseColor("#F44336"))
+            "주의", "야간 주의" -> holder.textRisk.setBackgroundColor(android.graphics.Color.parseColor("#FFB300"))
             else -> holder.textRisk.setBackgroundColor(android.graphics.Color.parseColor("#4CAF50"))
         }
     }

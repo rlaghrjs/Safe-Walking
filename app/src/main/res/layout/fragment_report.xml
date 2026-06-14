@@ -22,14 +22,6 @@
             android:layout_alignParentLeft="true"
             android:layout_centerInParent="true"/>
 
-        <Spinner
-            android:id="@+id/spinnerFilter"
-            style="?android:attr/spinnerStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_centerInParent="true"
-            android:padding="8dp"/>
     </RelativeLayout>
 
     <androidx.cardview.widget.CardView

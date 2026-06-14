@@ -74,6 +74,7 @@ class SafeWalkingService : Service(), SensorEventListener {
     private lateinit var fusedLocationClient: com.google.android.gms.location.FusedLocationProviderClient
     private lateinit var locationCallback: com.google.android.gms.location.LocationCallback
 
+
     private var latitude: Double? = null
     private var longitude: Double? = null
 
