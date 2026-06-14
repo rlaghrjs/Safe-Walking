@@ -47,6 +47,8 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     implementation("com.google.android.material:material:1.11.0")
+    implementation("com.luckycatlabs:SunriseSunsetCalculator:1.2")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 
     val room_version = "2.8.4"
 

@@ -62,6 +62,25 @@ class SafeWalkingService : Service(), SensorEventListener {
     private var longestSafeWalkingDuration = 0L
     private var safeWalkingDate = ""
 
+    private var lastSessionWarningCountTime = 0L
+
+    private var safeWalkStartTime = 0L
+    private var lastSafeWalkState = false
+
+    private var lightSensor: Sensor? = null
+    private var isDark = false
+    private var currentLux = 0f
+
+    private lateinit var fusedLocationClient: com.google.android.gms.location.FusedLocationProviderClient
+    private lateinit var locationCallback: com.google.android.gms.location.LocationCallback
+
+    private var latitude: Double? = null
+    private var longitude: Double? = null
+
+    private val darkLuxThreshold = 10f
+
+
+
     // [고도화 핵심] MainActivity와 통신하기 위한 실시간 데이터 전송 채널 (LiveData)
     companion object {
         data class UIState(
@@ -69,7 +88,8 @@ class SafeWalkingService : Service(), SensorEventListener {
             val pitch: Double, val isWalking: Boolean, val isScreenOn: Boolean,
             val isLookingAtPhone: Boolean, val isSmombie: Boolean,
             val riskLevel: String, val smombieDuration: Long, val smombieCount: Int,
-            val longestSafeWalkingDuration: Long
+            val longestSafeWalkingDuration: Long,
+            val isDark: Boolean
         )
         val liveUiState = MutableLiveData<UIState>()
     }
@@ -82,12 +102,22 @@ class SafeWalkingService : Service(), SensorEventListener {
         // [추정 고도화] 걸음 감지 센서 가져오기
         stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
 
+        lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)
+
+        fusedLocationClient =
+            com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(this)
+
+        startLocationUpdates()
+
         // 두 센서 모두 리스너 등록
         accelSensor?.also {
             sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
         }
         stepSensor?.also {
             sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL) // 걸음은 조금 더 여유 있게 수집
+        }
+        lightSensor?.also {
+            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
         }
     }
 
@@ -103,6 +133,14 @@ class SafeWalkingService : Service(), SensorEventListener {
 
     override fun onSensorChanged(event: SensorEvent?) {
         event ?: return
+
+        if (event.sensor.type == Sensor.TYPE_LIGHT) {
+            currentLux = event.values[0]
+
+            val isNightTime = isNightByAstronomy()
+
+            isDark = isNightTime && currentLux <= darkLuxThreshold
+        }
 
         // 1. 걸음 감지 센서 신호가 오면 마지막 걸음 시간을 현재 시간으로 갱신
         if (event.sensor.type == Sensor.TYPE_STEP_DETECTOR) {
@@ -120,6 +158,7 @@ class SafeWalkingService : Service(), SensorEventListener {
             detectPhoneAngle()
             detectSmombie()
             detectSafeWalking()
+            handleSafeWalkLogic()
 
             // UI 전송
             val now = System.currentTimeMillis()
@@ -180,23 +219,39 @@ class SafeWalkingService : Service(), SensorEventListener {
             if (!isSmombie) {
                 smombieStartTime = now
                 hasCountedThisSession = false
-                sessionWarningCount = 0 // 새 세션이 시작되면 세션 경고 횟수 리셋
+                sessionWarningCount = 0
+                lastSessionWarningCountTime = 0L
             }
             smombieDuration = now - smombieStartTime
             isSmombie = true
 
             val oldRisk = riskLevel
-            riskLevel = when {
-                smombieDuration < 5000 -> "일반 사용"
-                smombieDuration < 15000 -> "주의"
-                smombieDuration < 30000 -> "위험"
-                else -> "매우 위험"
+            riskLevel = if (isDark) {
+                when {
+                    smombieDuration < 3000 -> "야간 일반"
+                    smombieDuration < 10000 -> "야간 주의"
+                    smombieDuration < 20000 -> "야간 위험"
+                    else -> "야간 매우 위험"
+                }
+            } else {
+                when {
+                    smombieDuration < 5000 -> "일반 사용"
+                    smombieDuration < 15000 -> "주의"
+                    smombieDuration < 30000 -> "위험"
+                    else -> "매우 위험"
+                }
             }
 
-            if (smombieDuration >= 5000 && !hasCountedThisSession) {
-                smombieCount++
-                sessionWarningCount = 1 // 이번 세션에서 경고가 1회 충족됨을 기록
-                hasCountedThisSession = true
+            val warningStartThreshold = if (isDark) 3000L else 5000L
+
+            if (smombieDuration >= warningStartThreshold) {
+                if (lastSessionWarningCountTime == 0L ||
+                    now - lastSessionWarningCountTime >= warningCooldown
+                ) {
+                    smombieCount++
+                    sessionWarningCount++
+                    lastSessionWarningCountTime = now
+                }
             }
 
             if (oldRisk != riskLevel) {
@@ -205,7 +260,12 @@ class SafeWalkingService : Service(), SensorEventListener {
                 updateNotification("🚨 스몸비 위험 감지: $riskLevel", "지금 즉시 고개를 들고 전방을 확인하세요!", false)
             }
 
-            if (riskLevel == "위험" || riskLevel == "매우 위험") {
+            if (
+                riskLevel == "위험" ||
+                riskLevel == "매우 위험" ||
+                riskLevel == "야간 위험" ||
+                riskLevel == "야간 매우 위험"
+            ) {
                 showOverlay()
                 triggerWarning()
             } else {
@@ -221,11 +281,15 @@ class SafeWalkingService : Service(), SensorEventListener {
                     false
                 )
 
-                saveSmombieDataToDb(
-                    smombieDuration,
-                    sessionWarningCount,
-                    finalRiskLevel
-                )
+                val saveThreshold = if (isDark) 3000L else 5000L
+
+                if (smombieDuration >= saveThreshold && sessionWarningCount > 0) {
+                    saveSmombieDataToDb(
+                        smombieDuration,
+                        sessionWarningCount,
+                        finalRiskLevel
+                    )
+                }
             }
             removeOverlay()
             isSmombie = false;
@@ -259,7 +323,7 @@ class SafeWalkingService : Service(), SensorEventListener {
     private fun sendDataToUI() {
         val state = UIState(
             accX, accY, accZ, pitch, isWalking, isScreenOn,
-            isLookingAtPhone, isSmombie, riskLevel, smombieDuration, smombieCount, longestSafeWalkingDuration
+            isLookingAtPhone, isSmombie, riskLevel, smombieDuration, smombieCount, longestSafeWalkingDuration, isDark
         )
         liveUiState.postValue(state) // Main Thread 혹은 Worker Thread 안전하게 값 전달
     }
@@ -332,10 +396,12 @@ class SafeWalkingService : Service(), SensorEventListener {
         val layoutInflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as android.view.LayoutInflater
 
         val textView = TextView(this).apply {
-            text = "🚨\n전방 주시 요망!\n\n걸음을 멈추거나\n고개를 들어주세요."
+            text = if (isDark) {
+                "🚨\n야간 어두운 환경 위험!\n\n주변이 어두워 사고 확률이 높습니다.\n즉시 걸음을 멈추거나\n고개를 들어주세요!"
+            } else {
+                "🚨\n전방 주시 요망!\n\n걸음을 멈추거나\n고개를 들어주세요."
+            }
 
-            // [수정] 코틀린 정석 문법으로 변경
-            setTextColor(android.graphics.Color.WHITE)
             setTextColor(android.graphics.Color.WHITE)
             setTypeface(android.graphics.Typeface.DEFAULT_BOLD)
 
@@ -390,6 +456,10 @@ class SafeWalkingService : Service(), SensorEventListener {
         super.onDestroy()
         removeOverlay()
         sensorManager.unregisterListener(this)
+
+        if (::locationCallback.isInitialized) {
+            fusedLocationClient.removeLocationUpdates(locationCallback)
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -454,5 +524,103 @@ class SafeWalkingService : Service(), SensorEventListener {
             safeWalkingStartTime = 0L
             currentSafeWalkingDuration = 0L
         }
+    }
+
+    private fun handleSafeWalkLogic() {
+        val now = System.currentTimeMillis()
+        val isSafeWalking = isWalking && !isLookingAtPhone
+
+        if (isSafeWalking) {
+            if (!lastSafeWalkState) {
+                safeWalkStartTime = now
+                lastSafeWalkState = true
+            }
+        } else {
+            if (lastSafeWalkState) {
+                val safeSessionDuration = now - safeWalkStartTime
+                saveSafeWalkDataToDb(safeSessionDuration)
+                lastSafeWalkState = false
+            }
+        }
+    }
+
+    private fun saveSafeWalkDataToDb(safeDuration: Long) {
+        if (safeDuration <= 0) return
+
+        Thread {
+            val dao = AppDatabase.getDatabase(applicationContext).smombieDao()
+            val todayStr = getTodayDateString()
+
+            val existing = dao.getSafeWalkRecordByDate(todayStr)
+
+            if (existing != null) {
+                dao.insertOrUpdateSafeWalk(
+                    existing.copy(
+                        totalSafeDuration = existing.totalSafeDuration + safeDuration
+                    )
+                )
+            } else {
+                dao.insertOrUpdateSafeWalk(
+                    SafeWalkRecord(
+                        date = todayStr,
+                        totalSafeDuration = safeDuration
+                    )
+                )
+            }
+        }.start()
+    }
+
+    private fun startLocationUpdates() {
+        if (
+            checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
+            != android.content.pm.PackageManager.PERMISSION_GRANTED &&
+            checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION)
+            != android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        val locationRequest = com.google.android.gms.location.LocationRequest.Builder(
+            com.google.android.gms.location.Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+            30 * 60 * 1000L
+        )
+            .setMinUpdateIntervalMillis(10 * 60 * 1000L)
+            .setMinUpdateDistanceMeters(100f)
+            .build()
+
+        locationCallback = object : com.google.android.gms.location.LocationCallback() {
+            override fun onLocationResult(result: com.google.android.gms.location.LocationResult) {
+                val location = result.lastLocation ?: return
+                latitude = location.latitude
+                longitude = location.longitude
+            }
+        }
+
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
+    }
+
+    private fun isNightByAstronomy(): Boolean {
+        val lat = latitude ?: return false
+        val lon = longitude ?: return false
+
+        val location = com.luckycatlabs.sunrisesunset.dto.Location(
+            lat.toString(),
+            lon.toString()
+        )
+
+        val calculator = com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator(
+            location,
+            "Asia/Seoul"
+        )
+
+        val now = java.util.Calendar.getInstance()
+        val sunrise = calculator.getOfficialSunriseCalendarForDate(now)
+        val sunset = calculator.getOfficialSunsetCalendarForDate(now)
+
+        return now.before(sunrise) || now.after(sunset)
     }
 }

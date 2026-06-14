@@ -1,134 +1,314 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#F9FAFB"
-    android:padding="20dp">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Safe Walk"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:textColor="#111111"
-        android:layout_marginBottom="24dp"/>
-
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardStatus"
-        android:layout_width="match_parent"
-        android:layout_height="160dp"
-        app:cardCornerRadius="24dp"
-        app:cardElevation="0dp"
-        app:cardBackgroundColor="#2196F3"
-        android:layout_marginBottom="20dp">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="24dp">
-            <TextView
-                android:id="@+id/textEvent"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="감지 대기 중"
-                android:textColor="#FFFFFF"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp"/>
-            <TextView
-                android:id="@+id/textSubStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="서비스가 활성화되면 분석을 시작합니다."
-                android:textColor="#E3F2FD"
-                android:textSize="14sp"
-                android:textAlignment="center"/>
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
+    android:background="#F4F7FB"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:orientation="horizontal"
-        android:layout_marginBottom="20dp">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="22dp"
+        android:paddingEnd="22dp"
+        android:paddingTop="28dp"
+        android:paddingBottom="24dp">
 
+        <!-- Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Safe Walk"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textColor="#111827" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="오늘의 보행 안전을 확인해요"
+            android:textSize="14sp"
+            android:textColor="#6B7280"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="22dp" />
+
+        <!-- Main Status Card -->
         <androidx.cardview.widget.CardView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
-            android:layout_marginRight="6dp">
+            android:id="@+id/cardStatus"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            app:cardCornerRadius="26dp"
+            app:cardElevation="3dp"
+            app:cardBackgroundColor="#2563EB"
+            android:layout_marginBottom="18dp">
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
-                android:gravity="center_vertical"
-                android:paddingLeft="16dp">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="위험 노출 시간" android:textColor="#888888" android:textSize="12sp"/>
-                <TextView android:id="@+id/textDurationDashboard" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0초" android:textColor="#111111" android:textSize="18sp" android:textStyle="bold"/>
+                android:gravity="center"
+                android:padding="24dp">
+
+                <TextView
+                    android:id="@+id/textEvent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="감지 대기 중"
+                    android:textColor="#FFFFFF"
+                    android:textSize="25sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/textSubStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="서비스가 활성화되면 분석을 시작합니다."
+                    android:textColor="#DBEAFE"
+                    android:textSize="14sp"
+                    android:textAlignment="center" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="실시간 보행 습관 분석 중"
+                    android:textColor="#BFDBFE"
+                    android:textSize="12sp"
+                    android:layout_marginTop="16dp"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="5dp"
+                    android:paddingBottom="5dp"
+                    android:background="#22FFFFFF" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- Danger Summary Cards -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="92dp"
+            android:orientation="horizontal"
+            android:layout_marginBottom="18dp">
+
+            <!-- Danger Time -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginEnd="7dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#FFF7ED">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:src="@drawable/ic_time"
+                        android:scaleType="fitCenter" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="10dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="위험 노출 시간"
+                            android:textColor="#92400E"
+                            android:textSize="11sp"
+                            android:singleLine="true" />
+
+                        <TextView
+                            android:id="@+id/textDurationDashboard"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="0초"
+                            android:textColor="#111827"
+                            android:textSize="19sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Warning Count -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginStart="7dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#FEF2F2">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:src="@drawable/ic_notification"
+                        android:scaleType="fitCenter" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="10dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="오늘 경고 횟수"
+                            android:textColor="#991B1B"
+                            android:textSize="11sp"
+                            android:singleLine="true" />
+
+                        <TextView
+                            android:id="@+id/textCountDashboard"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="0회"
+                            android:textColor="#111827"
+                            android:textSize="19sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+        </LinearLayout>
+
+        <!-- Longest Safe Walk -->
         <androidx.cardview.widget.CardView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
-            android:layout_marginLeft="6dp">
+            android:layout_width="match_parent"
+            android:layout_height="124dp"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="#FFFFFF"
+            android:layout_marginBottom="14dp">
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
+                android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:paddingLeft="16dp">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="오늘 경고 횟수" android:textColor="#888888" android:textSize="12sp"/>
-                <TextView android:id="@+id/textCountDashboard" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0회" android:textColor="#111111" android:textSize="18sp" android:textStyle="bold"/>
+                android:padding="18dp">
+
+                <ImageView
+                    android:layout_width="58dp"
+                    android:layout_height="58dp"
+                    android:src="@drawable/ic_trophy"
+                    android:scaleType="fitCenter" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="오늘 최장 안전 보행"
+                        android:textColor="#111827"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:singleLine="true" />
+
+                    <TextView
+                        android:id="@+id/textLongestSafeWalk"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="0초"
+                        android:textColor="#16A34A"
+                        android:textSize="27sp"
+                        android:textStyle="bold"
+                        android:layout_marginTop="2dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="폰을 보지 않고 걸은 최장 시간"
+                        android:textColor="#6B7280"
+                        android:textSize="12sp"
+                        android:singleLine="true" />
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Total Safe Walk -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="124dp"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="#FFFFFF">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="18dp">
+
+                <ImageView
+                    android:layout_width="58dp"
+                    android:layout_height="58dp"
+                    android:src="@drawable/ic_walk"
+                    android:scaleType="fitCenter" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="오늘 누적 안전 보행"
+                        android:textColor="#111827"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:singleLine="true" />
+
+                    <TextView
+                        android:id="@+id/textTotalSafeDuration"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="0초"
+                        android:textColor="#2563EB"
+                        android:textSize="27sp"
+                        android:textStyle="bold"
+                        android:layout_marginTop="2dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="오늘 하루 안전하게 걸은 총 합산 시간"
+                        android:textColor="#6B7280"
+                        android:textSize="12sp"
+                        android:singleLine="true" />
+                </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
     </LinearLayout>
-
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="0dp"
-        app:cardBackgroundColor="#FFFFFF">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:gravity="center_vertical"
-            android:padding="20dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="오늘 최장 안전 보행"
-                android:textColor="#888888"
-                android:textSize="13sp"/>
-
-            <TextView
-                android:id="@+id/textLongestSafeWalk"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0초"
-                android:textColor="#111111"
-                android:textSize="26sp"
-                android:textStyle="bold"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="폰을 보지 않고 걸은 최장 시간"
-                android:textColor="#4CAF50"
-                android:textSize="12sp"/>
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-</LinearLayout>
+</ScrollView>

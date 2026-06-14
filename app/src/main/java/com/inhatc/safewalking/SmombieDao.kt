@@ -55,4 +55,13 @@ interface SmombieDao {
 
     @Query("SELECT * FROM smombie_sessions WHERE date = :date ORDER BY id DESC")
     fun getSessionsByDate(date: String): List<SmombieSession>
+
+    @Query("SELECT * FROM safe_walk_records WHERE date = :date")
+    fun getSafeWalkRecordByDate(date: String): SafeWalkRecord?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertOrUpdateSafeWalk(record: SafeWalkRecord)
+
+    @Query("SELECT totalSafeDuration FROM safe_walk_records WHERE date = :date")
+    fun getTodaySafeDuration(date: String): LiveData<Long?>
 }

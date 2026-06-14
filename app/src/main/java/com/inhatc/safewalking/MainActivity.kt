@@ -17,6 +17,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         //////////////// 디버깅용 임시코드/////////////////
         insertDummyDataOnce()
 
@@ -68,8 +69,26 @@ class MainActivity : AppCompatActivity() {
                 != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACTIVITY_RECOGNITION), 103)
             } else {
-                startSafeWalkingService()
+                checkLocationPermission()
             }
+        } else {
+            checkLocationPermission()
+        }
+    }
+
+    private fun checkLocationPermission() {
+        if (
+            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ),
+                104
+            )
         } else {
             startSafeWalkingService()
         }
@@ -112,9 +131,17 @@ class MainActivity : AppCompatActivity() {
             }
             103 -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    startSafeWalkingService()
+                    checkLocationPermission()
                 } else {
                     Toast.makeText(this, "신체 활동 권한을 허용해야 걸음 감지가 정상 작동합니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
+            104 -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startSafeWalkingService()
+                } else {
+                    Toast.makeText(this, "위치 권한이 없으면 야간 판단 정확도가 낮아질 수 있습니다.", Toast.LENGTH_SHORT).show()
+                    startSafeWalkingService()
                 }
             }
         }
